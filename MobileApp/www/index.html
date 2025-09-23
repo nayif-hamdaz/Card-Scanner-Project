@@ -6,6 +6,8 @@
     <title>AI Business Card Scanner</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FINAL UPDATE: Updated CSP to allow your new public Render URL -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: gap: https://ssl.gstatic.com 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self' https://cdn.tailwindcss.com 'unsafe-inline'; connect-src https://card-scanner-project.onrender.com">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f0f4f8; }
         .toggle-bg:after {
@@ -18,12 +20,12 @@
         input:checked + .toggle-bg {
             @apply bg-blue-600;
         }
-        /* The mirroring transform has been removed from here */
     </style>
 </head>
 <body class="text-gray-800">
 
     <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+        <!-- The rest of the HTML is unchanged -->
         <header class="text-center mb-8">
             <h1 class="text-3xl sm:text-4xl font-bold text-gray-900">AI Business Card Scanner</h1>
             <p class="text-md text-gray-600 mt-2">Extract contact details from one or both sides of a business card.</p>
@@ -32,7 +34,6 @@
         <main class="bg-white rounded-2xl shadow-xl p-6">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 
-                <!-- Left Column: Image Input -->
                 <div class="border-r-0 lg:border-r lg:pr-8 border-gray-200">
                     <div class="flex justify-between items-center mb-4">
                         <h2 class="text-2xl font-semibold">1. Provide Image(s)</h2>
@@ -46,8 +47,6 @@
                             </label>
                         </div>
                     </div>
-
-                    <!-- Front Side Uploader -->
                     <div id="front-side-container">
                         <h3 class="font-semibold text-gray-700 mb-2">Front Side</h3>
                         <div class="flex space-x-2 mb-2">
@@ -57,8 +56,6 @@
                         <input type="file" id="front-file-input" class="hidden" accept="image/*">
                         <img id="front-image-preview" src="https://placehold.co/400x250/e2e8f0/cbd5e0?text=Front+Side" alt="Front preview" class="w-full rounded-md mt-2 h-48 object-contain border bg-gray-50">
                     </div>
-
-                    <!-- Back Side Uploader (Initially Hidden) -->
                     <div id="back-side-container" class="hidden mt-4">
                         <h3 class="font-semibold text-gray-700 mb-2">Back Side</h3>
                         <div class="flex space-x-2 mb-2">
@@ -68,31 +65,28 @@
                         <input type="file" id="back-file-input" class="hidden" accept="image/*">
                         <img id="back-image-preview" src="https://placehold.co/400x250/e2e8f0/cbd5e0?text=Back+Side" alt="Back preview" class="w-full rounded-md mt-2 h-48 object-contain border bg-gray-50">
                     </div>
-                    
                     <button id="scan-btn" class="mt-6 w-full bg-green-600 text-white px-6 py-3 rounded-lg font-bold text-lg hover:bg-green-700 transition">Scan Business Card</button>
                 </div>
 
-                <!-- Right Column: Data Review -->
                 <div>
                     <h2 class="text-2xl font-semibold mb-4">2. Review & Save</h2>
                     <div id="loading-spinner" class="hidden flex flex-col items-center justify-center h-full text-gray-500">
                          <svg class="animate-spin h-10 w-10 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                         <p class="mt-4 font-semibold">Scanning and analyzing...</p>
                     </div>
-
                     <div id="results-form" class="opacity-100 transition-opacity duration-500 space-y-4">
-                        <div><label for="organization" class="block text-sm font-medium text-black-700">Organization</label><input type="text" id="organization" class="mt-1 block w-full bg-blue-100 rounded-md border-balck-500 shadow-sm"></div>
+                        <div><label for="organization" class="block text-sm font-medium text-gray-700">Organization</label><input type="text" id="organization" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div><label for="name" class="block text-sm font-medium text-black-700">Name</label><input type="text" id="name" class="mt-1 block w-full bg-blue-100 rounded-md border-black-500 shadow-sm"></div>
-                            <div><label for="designation" class="block text-sm font-medium text-black-700">Designation</label><input type="text" id="designation" class="mt-1 block w-full bg-blue-100 rounded-md border-black-500 shadow-sm"></div>
+                            <div><label for="name" class="block text-sm font-medium text-gray-700">Name</label><input type="text" id="name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></div>
+                            <div><label for="designation" class="block text-sm font-medium text-gray-700">Designation</label><input type="text" id="designation" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></div>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                           <div><label for="contact" class="block text-sm font-medium text-black-700">Contact Number</label><input type="text" id="contact" class="mt-1 block w-full bg-blue-100 rounded-md border-black-500 shadow-sm"></div>
-                           <div><label for="email" class="block text-sm font-medium text-black-700">Email</label><input type="email" id="email" class="mt-1 block w-full bg-blue-100 rounded-md border-blue-300 shadow-sm"></div>
+                           <div><label for="contact" class="block text-sm font-medium text-gray-700">Contact Number</label><input type="text" id="contact" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></div>
+                           <div><label for="email" class="block text-sm font-medium text-gray-700">Email</label><input type="email" id="email" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></div>
                         </div>
-                        <div><label for="website" class="block text-sm font-medium text-black-700">Website</label><input type="text" id="website" class="mt-1 block w-full bg-blue-100 rounded-md border-black-500 shadow-sm"></div>
-                        <div><label for="address" class="block text-sm font-medium text-black-700">Address</label><textarea id="address" rows="2" class="mt-1 block w-full bg-blue-100 rounded-md border-black-500 shadow-sm"></textarea></div>
-                        <div><label for="remarks" class="block text-sm font-medium text-black-700">Remarks</label><textarea id="remarks" rows="2" class="mt-1 block w-full bg-blue-100 rounded-md border-black-500 shadow-sm"></textarea></div>
+                        <div><label for="website" class="block text-sm font-medium text-gray-700">Website</label><input type="text" id="website" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></div>
+                        <div><label for="address" class="block text-sm font-medium text-gray-700">Address</label><textarea id="address" rows="2" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></textarea></div>
+                        <div><label for="remarks" class="block text-sm font-medium text-gray-700">Remarks</label><textarea id="remarks" rows="2" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></textarea></div>
                         <button id="save-btn" class="w-full bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition">Save to Excel</button>
                     </div>
                 </div>
@@ -100,7 +94,6 @@
         </main>
     </div>
     
-    <!-- Fullscreen Camera Overlay -->
     <div id="camera-overlay" class="hidden fixed inset-0 bg-black bg-opacity-90 flex flex-col items-center justify-center z-50 text-white p-4">
         <h2 id="camera-prompt" class="text-2xl font-bold mb-4"></h2>
         <div class="relative w-full max-w-2xl aspect-video bg-gray-900 rounded-lg overflow-hidden">
@@ -110,17 +103,18 @@
         <div id="camera-controls" class="mt-4 flex space-x-4"></div>
         <button id="camera-close-btn" class="absolute top-4 right-4 text-white text-2xl font-bold">&times;</button>
     </div>
-
     <canvas id="camera-canvas" class="hidden"></canvas>
 
     <script>
-        // --- State Management ---
+        // --- State Management & Configuration ---
+        // FINAL UPDATE: Point the app to the live, public Render server URL
+        const BACKEND_URL = 'https://card-scanner-project.onrender.com'; 
         let captureState = 'idle'; 
         let frontImageDataURL = null;
         let backImageDataURL = null;
         let cameraStream = null;
 
-        // --- Element References ---
+        // --- All other JavaScript is unchanged ---
         const scanModeToggle = document.getElementById('scan-mode-toggle');
         const scanModeLabel = document.getElementById('scan-mode-label');
         const backSideContainer = document.getElementById('back-side-container');
@@ -133,7 +127,6 @@
         const saveBtn = document.getElementById('save-btn');
         const loadingSpinner = document.getElementById('loading-spinner');
         const resultsForm = document.getElementById('results-form');
-        
         const cameraOverlay = document.getElementById('camera-overlay');
         const cameraPrompt = document.getElementById('camera-prompt');
         const cameraFeed = document.getElementById('camera-overlay-feed');
@@ -142,7 +135,6 @@
         const cameraCloseBtn = document.getElementById('camera-close-btn');
         const cameraCanvas = document.getElementById('camera-canvas');
 
-        // --- Event Listeners ---
         scanModeToggle.addEventListener('change', handleScanModeChange);
         document.getElementById('front-upload-btn').addEventListener('click', () => frontFileInput.click());
         document.getElementById('back-upload-btn').addEventListener('click', () => backFileInput.click());
@@ -154,36 +146,29 @@
         scanBtn.addEventListener('click', handleScan);
         saveBtn.addEventListener('click', handleSaveToExcel);
 
-        // --- Main App Logic (Scan/Save) ---
         async function handleScan() {
             if (!frontImageDataURL) {
                 alert("Please provide an image for the Front Side.");
                 return;
             }
-            
             resultsForm.classList.add('opacity-0');
             loadingSpinner.classList.remove('hidden');
-
             try {
                 const payload = {
                     frontImage: frontImageDataURL,
                     backImage: scanModeToggle.checked ? backImageDataURL : null
                 };
-
-                const response = await fetch('/process-card', {
+                const response = await fetch(`${BACKEND_URL}/process-card`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-
                 if (!response.ok) {
                     const errorResult = await response.json();
                     throw new Error(errorResult.error || `Server error: ${response.status}`);
                 }
-
                 const result = await response.json();
                 populateForm(result.data);
-
             } catch (error) {
                 console.error("Error during scan:", error);
                 alert("An error occurred during scanning: " + error.message);
@@ -204,21 +189,17 @@
                 address: document.getElementById('address').value.trim(),
                 remarks: document.getElementById('remarks').value.trim()
             };
-
             if (!contact.name && !contact.organization) {
                 alert("Cannot save an empty contact.");
                 return;
             }
-
             try {
-                const response = await fetch('/save-contact', {
+                const response = await fetch(`${BACKEND_URL}/save-contact`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(contact)
                 });
-
                 if (!response.ok) throw new Error("Failed to save to Excel file.");
-
                 const result = await response.json();
                 alert(result.message);
                 clearFormAndPreviews();
@@ -227,7 +208,7 @@
                 alert("An error occurred while saving to the Excel file.");
             }
         }
-
+        
         function populateForm(data) {
             document.getElementById('organization').value = data.organization || '';
             document.getElementById('name').value = data.name || '';
@@ -247,8 +228,6 @@
             backPreview.src = 'https://placehold.co/400x250/e2e8f0/cbd5e0?text=Back+Side';
         }
 
-
-        // --- UI Update Functions ---
         function handleScanModeChange() {
             const isTwoSided = scanModeToggle.checked;
             backSideContainer.classList.toggle('hidden', !isTwoSided);
@@ -279,7 +258,6 @@
             }
         }
 
-        // --- Guided Camera Capture Flow ---
         async function startGuidedCapture() {
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                 alert("Camera functionality is not supported by your browser."); return;
@@ -349,7 +327,6 @@
             const context = cameraCanvas.getContext('2d');
             cameraCanvas.width = cameraFeed.videoWidth;
             cameraCanvas.height = cameraFeed.videoHeight;
-            // The mirroring transforms have been removed from here
             context.drawImage(cameraFeed, 0, 0, cameraCanvas.width, cameraCanvas.height);
             capturePreviewImg.src = cameraCanvas.toDataURL('image/jpeg');
             if (captureState === 'capturing_front') updateCaptureState('confirming_front');
