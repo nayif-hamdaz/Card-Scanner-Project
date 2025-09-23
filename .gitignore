@@ -1,0 +1,20 @@
+# --- SECRETS ---
+# Ignore the secret API key file. This is the most important rule.
+backend/.env
+
+# --- LOCAL DATA ---
+# Ignore the local Excel data file. The cloud server will have its own.
+backend/contacts.xlsx
+
+# --- PYTHON-SPECIFIC ---
+# Ignore the Python virtual environment folder.
+backend/venv/
+# Ignore Python cache files and folders.
+backend/__pycache__/
+*.pyc
+
+# --- NODE.JS / CORDOVA SPECIFIC ---
+# Ignore the huge folder of JavaScript dependencies.
+MobileApp/node_modules/
+# Ignore Cordova's platform-specific folders (the generated Android project).
+MobileApp/platforms

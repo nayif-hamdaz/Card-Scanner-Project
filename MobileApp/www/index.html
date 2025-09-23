@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Business Card Scanner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f0f4f8; }
+        .toggle-bg:after {
+            content: '';
+            @apply absolute top-1 left-1 bg-white border border-gray-300 rounded-full h-5 w-5 transition shadow-sm;
+        }
+        input:checked + .toggle-bg:after {
+            @apply transform translate-x-full;
+        }
+        input:checked + .toggle-bg {
+            @apply bg-blue-600;
+        }
+        /* The mirroring transform has been removed from here */
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl sm:text-4xl font-bold text-gray-900">AI Business Card Scanner</h1>
+            <p class="text-md text-gray-600 mt-2">Extract contact details from one or both sides of a business card.</p>
+        </header>
+
+        <main class="bg-white rounded-2xl shadow-xl p-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                
+                <!-- Left Column: Image Input -->
+                <div class="border-r-0 lg:border-r lg:pr-8 border-gray-200">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-2xl font-semibold">1. Provide Image(s)</h2>
+                        <div class="flex items-center">
+                            <span id="scan-mode-label" class="text-sm font-medium text-gray-700 mr-3 w-20 text-right">One-Sided</span>
+                            <label for="scan-mode-toggle" class="flex items-center cursor-pointer">
+                                <div class="relative">
+                                    <input type="checkbox" id="scan-mode-toggle" class="sr-only">
+                                    <div class="toggle-bg block bg-gray-200 w-12 h-7 rounded-full"></div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Front Side Uploader -->
+                    <div id="front-side-container">
+                        <h3 class="font-semibold text-gray-700 mb-2">Front Side</h3>
+                        <div class="flex space-x-2 mb-2">
+                            <button id="front-upload-btn" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold w-full">Upload Front</button>
+                            <button id="front-camera-btn" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-semibold w-full">Camera</button>
+                        </div>
+                        <input type="file" id="front-file-input" class="hidden" accept="image/*">
+                        <img id="front-image-preview" src="https://placehold.co/400x250/e2e8f0/cbd5e0?text=Front+Side" alt="Front preview" class="w-full rounded-md mt-2 h-48 object-contain border bg-gray-50">
+                    </div>
+
+                    <!-- Back Side Uploader (Initially Hidden) -->
+                    <div id="back-side-container" class="hidden mt-4">
+                        <h3 class="font-semibold text-gray-700 mb-2">Back Side</h3>
+                        <div class="flex space-x-2 mb-2">
+                           <button id="back-upload-btn" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold w-full">Upload Back</button>
+                           <button id="back-camera-btn" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-semibold w-full">Camera</button>
+                        </div>
+                        <input type="file" id="back-file-input" class="hidden" accept="image/*">
+                        <img id="back-image-preview" src="https://placehold.co/400x250/e2e8f0/cbd5e0?text=Back+Side" alt="Back preview" class="w-full rounded-md mt-2 h-48 object-contain border bg-gray-50">
+                    </div>
+                    
+                    <button id="scan-btn" class="mt-6 w-full bg-green-600 text-white px-6 py-3 rounded-lg font-bold text-lg hover:bg-green-700 transition">Scan Business Card</button>
+                </div>
+
+                <!-- Right Column: Data Review -->
+                <div>
+                    <h2 class="text-2xl font-semibold mb-4">2. Review & Save</h2>
+                    <div id="loading-spinner" class="hidden flex flex-col items-center justify-center h-full text-gray-500">
+                         <svg class="animate-spin h-10 w-10 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        <p class="mt-4 font-semibold">Scanning and analyzing...</p>
+                    </div>
+
+                    <div id="results-form" class="opacity-100 transition-opacity duration-500 space-y-4">
+                        <div><label for="organization" class="block text-sm font-medium text-black-700">Organization</label><input type="text" id="organization" class="mt-1 block w-full bg-blue-100 rounded-md border-balck-500 shadow-sm"></div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div><label for="name" class="block text-sm font-medium text-black-700">Name</label><input type="text" id="name" class="mt-1 block w-full bg-blue-100 rounded-md border-black-500 shadow-sm"></div>
+                            <div><label for="designation" class="block text-sm font-medium text-black-700">Designation</label><input type="text" id="designation" class="mt-1 block w-full bg-blue-100 rounded-md border-black-500 shadow-sm"></div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                           <div><label for="contact" class="block text-sm font-medium text-black-700">Contact Number</label><input type="text" id="contact" class="mt-1 block w-full bg-blue-100 rounded-md border-black-500 shadow-sm"></div>
+                           <div><label for="email" class="block text-sm font-medium text-black-700">Email</label><input type="email" id="email" class="mt-1 block w-full bg-blue-100 rounded-md border-blue-300 shadow-sm"></div>
+                        </div>
+                        <div><label for="website" class="block text-sm font-medium text-black-700">Website</label><input type="text" id="website" class="mt-1 block w-full bg-blue-100 rounded-md border-black-500 shadow-sm"></div>
+                        <div><label for="address" class="block text-sm font-medium text-black-700">Address</label><textarea id="address" rows="2" class="mt-1 block w-full bg-blue-100 rounded-md border-black-500 shadow-sm"></textarea></div>
+                        <div><label for="remarks" class="block text-sm font-medium text-black-700">Remarks</label><textarea id="remarks" rows="2" class="mt-1 block w-full bg-blue-100 rounded-md border-black-500 shadow-sm"></textarea></div>
+                        <button id="save-btn" class="w-full bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition">Save to Excel</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Fullscreen Camera Overlay -->
+    <div id="camera-overlay" class="hidden fixed inset-0 bg-black bg-opacity-90 flex flex-col items-center justify-center z-50 text-white p-4">
+        <h2 id="camera-prompt" class="text-2xl font-bold mb-4"></h2>
+        <div class="relative w-full max-w-2xl aspect-video bg-gray-900 rounded-lg overflow-hidden">
+            <video id="camera-overlay-feed" class="w-full h-full object-contain" autoplay playsinline></video>
+            <img id="capture-preview-img" class="hidden w-full h-full object-contain absolute inset-0">
+        </div>
+        <div id="camera-controls" class="mt-4 flex space-x-4"></div>
+        <button id="camera-close-btn" class="absolute top-4 right-4 text-white text-2xl font-bold">&times;</button>
+    </div>
+
+    <canvas id="camera-canvas" class="hidden"></canvas>
+
+    <script>
+        // --- State Management ---
+        let captureState = 'idle'; 
+        let frontImageDataURL = null;
+        let backImageDataURL = null;
+        let cameraStream = null;
+
+        // --- Element References ---
+        const scanModeToggle = document.getElementById('scan-mode-toggle');
+        const scanModeLabel = document.getElementById('scan-mode-label');
+        const backSideContainer = document.getElementById('back-side-container');
+        const frontPreview = document.getElementById('front-image-preview');
+        const backPreview = document.getElementById('back-image-preview');
+        const frontFileInput = document.getElementById('front-file-input');
+        const backFileInput = document.getElementById('back-file-input');
+        const toggleBg = document.querySelector('.toggle-bg');
+        const scanBtn = document.getElementById('scan-btn');
+        const saveBtn = document.getElementById('save-btn');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const resultsForm = document.getElementById('results-form');
+        
+        const cameraOverlay = document.getElementById('camera-overlay');
+        const cameraPrompt = document.getElementById('camera-prompt');
+        const cameraFeed = document.getElementById('camera-overlay-feed');
+        const capturePreviewImg = document.getElementById('capture-preview-img');
+        const cameraControls = document.getElementById('camera-controls');
+        const cameraCloseBtn = document.getElementById('camera-close-btn');
+        const cameraCanvas = document.getElementById('camera-canvas');
+
+        // --- Event Listeners ---
+        scanModeToggle.addEventListener('change', handleScanModeChange);
+        document.getElementById('front-upload-btn').addEventListener('click', () => frontFileInput.click());
+        document.getElementById('back-upload-btn').addEventListener('click', () => backFileInput.click());
+        frontFileInput.addEventListener('change', (e) => handleFileSelect(e, 'front'));
+        backFileInput.addEventListener('change', (e) => handleFileSelect(e, 'back'));
+        document.getElementById('front-camera-btn').addEventListener('click', startGuidedCapture);
+        document.getElementById('back-camera-btn').addEventListener('click', startGuidedCapture);
+        cameraCloseBtn.addEventListener('click', closeCamera);
+        scanBtn.addEventListener('click', handleScan);
+        saveBtn.addEventListener('click', handleSaveToExcel);
+
+        // --- Main App Logic (Scan/Save) ---
+        async function handleScan() {
+            if (!frontImageDataURL) {
+                alert("Please provide an image for the Front Side.");
+                return;
+            }
+            
+            resultsForm.classList.add('opacity-0');
+            loadingSpinner.classList.remove('hidden');
+
+            try {
+                const payload = {
+                    frontImage: frontImageDataURL,
+                    backImage: scanModeToggle.checked ? backImageDataURL : null
+                };
+
+                const response = await fetch('/process-card', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorResult = await response.json();
+                    throw new Error(errorResult.error || `Server error: ${response.status}`);
+                }
+
+                const result = await response.json();
+                populateForm(result.data);
+
+            } catch (error) {
+                console.error("Error during scan:", error);
+                alert("An error occurred during scanning: " + error.message);
+            } finally {
+                loadingSpinner.classList.add('hidden');
+                resultsForm.classList.remove('opacity-0');
+            }
+        }
+
+        async function handleSaveToExcel() {
+            const contact = {
+                organization: document.getElementById('organization').value.trim(),
+                name: document.getElementById('name').value.trim(),
+                designation: document.getElementById('designation').value.trim(),
+                contact: document.getElementById('contact').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                website: document.getElementById('website').value.trim(),
+                address: document.getElementById('address').value.trim(),
+                remarks: document.getElementById('remarks').value.trim()
+            };
+
+            if (!contact.name && !contact.organization) {
+                alert("Cannot save an empty contact.");
+                return;
+            }
+
+            try {
+                const response = await fetch('/save-contact', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(contact)
+                });
+
+                if (!response.ok) throw new Error("Failed to save to Excel file.");
+
+                const result = await response.json();
+                alert(result.message);
+                clearFormAndPreviews();
+            } catch (error) {
+                console.error("Error saving contact:", error);
+                alert("An error occurred while saving to the Excel file.");
+            }
+        }
+
+        function populateForm(data) {
+            document.getElementById('organization').value = data.organization || '';
+            document.getElementById('name').value = data.name || '';
+            document.getElementById('designation').value = data.designation || '';
+            document.getElementById('contact').value = data.contact || '';
+            document.getElementById('email').value = data.email || '';
+            document.getElementById('website').value = data.website || '';
+            document.getElementById('address').value = data.address || '';
+            document.getElementById('remarks').value = data.remarks || '';
+        }
+
+        function clearFormAndPreviews() {
+            resultsForm.querySelectorAll('input, textarea').forEach(input => input.value = '');
+            frontImageDataURL = null;
+            backImageDataURL = null;
+            frontPreview.src = 'https://placehold.co/400x250/e2e8f0/cbd5e0?text=Front+Side';
+            backPreview.src = 'https://placehold.co/400x250/e2e8f0/cbd5e0?text=Back+Side';
+        }
+
+
+        // --- UI Update Functions ---
+        function handleScanModeChange() {
+            const isTwoSided = scanModeToggle.checked;
+            backSideContainer.classList.toggle('hidden', !isTwoSided);
+            scanModeLabel.textContent = isTwoSided ? 'Two-Sided' : 'One-Sided';
+            toggleBg.classList.toggle('bg-blue-600', isTwoSided);
+            toggleBg.classList.toggle('bg-gray-200', !isTwoSided);
+            if (!isTwoSided) {
+                backImageDataURL = null;
+                backPreview.src = 'https://placehold.co/400x250/e2e8f0/cbd5e0?text=Back+Side';
+            }
+        }
+
+        function handleFileSelect(event, side) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const imageUrl = e.target.result;
+                    if (side === 'front') {
+                        frontImageDataURL = imageUrl;
+                        frontPreview.src = imageUrl;
+                    } else {
+                        backImageDataURL = imageUrl;
+                        backPreview.src = imageUrl;
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // --- Guided Camera Capture Flow ---
+        async function startGuidedCapture() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                alert("Camera functionality is not supported by your browser."); return;
+            }
+            scanModeToggle.checked = true;
+            handleScanModeChange();
+            cameraOverlay.classList.remove('hidden');
+            await startCameraStream();
+            updateCaptureState('capturing_front');
+        }
+
+        async function startCameraStream() {
+            try {
+                if (cameraStream) cameraStream.getTracks().forEach(track => track.stop());
+                cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                cameraFeed.srcObject = cameraStream;
+            } catch (error) {
+                console.error("Error accessing camera:", error);
+                alert("Could not access the camera. Please ensure permissions are granted.");
+                closeCamera();
+            }
+        }
+        
+        function updateCaptureState(newState) {
+            captureState = newState;
+            cameraControls.innerHTML = ''; 
+
+            switch (captureState) {
+                case 'capturing_front':
+                    cameraPrompt.textContent = 'Capture Front Side';
+                    capturePreviewImg.classList.add('hidden');
+                    cameraFeed.classList.remove('hidden');
+                    createButton('Capture', handleCaptureClick);
+                    break;
+                case 'confirming_front':
+                    cameraPrompt.textContent = 'Use this photo for the Front?';
+                    cameraFeed.classList.add('hidden');
+                    capturePreviewImg.classList.remove('hidden');
+                    createButton('Retake', () => updateCaptureState('capturing_front'));
+                    createButton('Confirm', () => {
+                        frontImageDataURL = capturePreviewImg.src;
+                        frontPreview.src = frontImageDataURL;
+                        updateCaptureState('capturing_back');
+                    });
+                    break;
+                case 'capturing_back':
+                    cameraPrompt.textContent = 'Capture Back Side';
+                    capturePreviewImg.classList.add('hidden');
+                    cameraFeed.classList.remove('hidden');
+                    createButton('Capture', handleCaptureClick);
+                    break;
+                case 'confirming_back':
+                    cameraPrompt.textContent = 'Use this photo for the Back?';
+                    cameraFeed.classList.add('hidden');
+                    capturePreviewImg.classList.remove('hidden');
+                    createButton('Retake', () => updateCaptureState('capturing_back'));
+                    createButton('Confirm', () => {
+                        backImageDataURL = capturePreviewImg.src;
+                        backPreview.src = backImageDataURL;
+                        closeCamera();
+                    });
+                    break;
+            }
+        }
+
+        function handleCaptureClick() {
+            const context = cameraCanvas.getContext('2d');
+            cameraCanvas.width = cameraFeed.videoWidth;
+            cameraCanvas.height = cameraFeed.videoHeight;
+            // The mirroring transforms have been removed from here
+            context.drawImage(cameraFeed, 0, 0, cameraCanvas.width, cameraCanvas.height);
+            capturePreviewImg.src = cameraCanvas.toDataURL('image/jpeg');
+            if (captureState === 'capturing_front') updateCaptureState('confirming_front');
+            else if (captureState === 'capturing_back') updateCaptureState('confirming_back');
+        }
+
+        function createButton(text, onClick) {
+            const button = document.createElement('button');
+            button.textContent = text;
+            button.className = 'bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition';
+            button.onclick = onClick;
+            cameraControls.appendChild(button);
+        }
+
+        function closeCamera() {
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+                cameraStream = null;
+            }
+            cameraOverlay.classList.add('hidden');
+            captureState = 'idle';
+        }
+    </script>
+</body>
+</html>
+
