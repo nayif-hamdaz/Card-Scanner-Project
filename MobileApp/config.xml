@@ -7,7 +7,7 @@
     </author>
     <content src="index.html" />
 
-    <!-- Allowlist for network requests -->
+    <!-- Allowlist for network requests. Allows connection to any server. -->
     <access origin="*" />
     <allow-intent href="http://*/*" />
     <allow-intent href="https://*/*" />
@@ -18,15 +18,16 @@
 
     <platform name="android">
         <allow-intent href="market:*" />
-        <!-- This preference ensures the app uses the modern system WebView -->
+        <!-- This preference ensures the app uses the modern system WebView, which is important for performance and compatibility. -->
         <preference name="AndroidXEnabled" value="true" />
     </platform>
 
-    <!-- Camera Plugin Permissions -->
+    <!-- These are the definitive permissions for the Cordova Camera Plugin -->
     <feature name="Camera">
         <param name="android-package" value="org.apache.cordova.camera.CameraLauncher" />
     </feature>
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
 </widget>
 
