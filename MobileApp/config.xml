@@ -8,4 +8,12 @@
     <content src="index.html" />
     <allow-intent href="http://*/*" />
     <allow-intent href="https://*/*" />
+    <access origin="https://card-scanner-project.onrender.com" />
+        <!-- Camera Plugin Permissions -->
+    <feature name="Camera">
+        <param name="android-package" value="org.apache.cordova.camera.CameraLauncher" />
+    </feature>
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+
 </widget>
