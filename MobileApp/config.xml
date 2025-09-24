@@ -1,19 +1,32 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="com.hamdaz.cardscanner" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget id="com.hamdaz.cardscanner" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>CardScanner</name>
-    <description>Sample Apache Cordova App</description>
+    <description>An AI-powered business card scanner.</description>
     <author email="dev@cordova.apache.org" href="https://cordova.apache.org">
         Apache Cordova Team
     </author>
     <content src="index.html" />
+
+    <!-- Allowlist for network requests -->
+    <access origin="*" />
     <allow-intent href="http://*/*" />
     <allow-intent href="https://*/*" />
-    <access origin="https://card-scanner-project.onrender.com" />
-        <!-- Camera Plugin Permissions -->
+    <allow-intent href="tel:*" />
+    <allow-intent href="sms:*" />
+    <allow-intent href="mailto:*" />
+    <allow-intent href="geo:*" />
+
+    <platform name="android">
+        <allow-intent href="market:*" />
+        <!-- This preference ensures the app uses the modern system WebView -->
+        <preference name="AndroidXEnabled" value="true" />
+    </platform>
+
+    <!-- Camera Plugin Permissions -->
     <feature name="Camera">
         <param name="android-package" value="org.apache.cordova.camera.CameraLauncher" />
     </feature>
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 </widget>
+

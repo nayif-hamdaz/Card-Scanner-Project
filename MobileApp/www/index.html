@@ -3,23 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- FINAL, DEFINITIVE FIX for Camera and Network -->
+    <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval' data: gap:">
     <title>AI Business Card Scanner</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- FINAL UPDATE: Updated CSP to allow your new public Render URL -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: gap: https://ssl.gstatic.com 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self' https://cdn.tailwindcss.com 'unsafe-inline'; connect-src https://card-scanner-project.onrender.com">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f0f4f8; }
-        .toggle-bg:after {
-            content: '';
-            @apply absolute top-1 left-1 bg-white border border-gray-300 rounded-full h-5 w-5 transition shadow-sm;
-        }
-        input:checked + .toggle-bg:after {
-            @apply transform translate-x-full;
-        }
-        input:checked + .toggle-bg {
-            @apply bg-blue-600;
-        }
+        .toggle-bg:after { content: ''; @apply absolute top-1 left-1 bg-white border border-gray-300 rounded-full h-5 w-5 transition shadow-sm; }
+        input:checked + .toggle-bg:after { @apply transform translate-x-full; }
+        input:checked + .toggle-bg { @apply bg-blue-600; }
     </style>
 </head>
 <body class="text-gray-800">
@@ -28,7 +21,7 @@
         <!-- The rest of the HTML is unchanged -->
         <header class="text-center mb-8">
             <h1 class="text-3xl sm:text-4xl font-bold text-gray-900">AI Business Card Scanner</h1>
-            <p class="text-md text-blue-600 mt-2">Extract your business card details and store it in a single click.</p>
+            <p class="text-md text-gray-600 mt-2">Extract contact details from one or both sides of a business card.</p>
         </header>
 
         <main class="bg-white rounded-2xl shadow-xl p-6">
@@ -75,7 +68,7 @@
                         <p class="mt-4 font-semibold">Scanning and analyzing...</p>
                     </div>
                     <div id="results-form" class="opacity-100 transition-opacity duration-500 space-y-4">
-                        <div><label for="organization" class="block text-sm font-medium text-gray-700">Organization</label><input type="text" id="organization" class="mt-1 block w-full bg-blue-100 border-gray-300 shadow-sm"></div>
+                        <div><label for="organization" class="block text-sm font-medium text-gray-700">Organization</label><input type="text" id="organization" class="mt-1 block w-full bg-blue-100 rounded-md border-gray-300 shadow-sm"></div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div><label for="name" class="block text-sm font-medium text-gray-700">Name</label><input type="text" id="name" class="mt-1 block w-full bg-blue-100 rounded-md border-gray-300 shadow-sm"></div>
                             <div><label for="designation" class="block text-sm font-medium text-gray-700">Designation</label><input type="text" id="designation" class="mt-1 block w-full bg-blue-100 rounded-md border-gray-300 shadow-sm"></div>
@@ -87,7 +80,8 @@
                         <div><label for="website" class="block text-sm font-medium text-gray-700">Website</label><input type="text" id="website" class="mt-1 block w-full bg-blue-100 rounded-md border-gray-300 shadow-sm"></div>
                         <div><label for="address" class="block text-sm font-medium text-gray-700">Address</label><textarea id="address" rows="2" class="mt-1 block w-full bg-blue-100 rounded-md border-gray-300 shadow-sm"></textarea></div>
                         <div><label for="remarks" class="block text-sm font-medium text-gray-700">Remarks</label><textarea id="remarks" rows="2" class="mt-1 block w-full bg-blue-100 rounded-md border-gray-300 shadow-sm"></textarea></div>
-                        <button id="save-btn" class="w-full bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition">Save to Excel</button>
+                        <!-- The Download button has been removed, leaving only the Save button -->
+                        <button id="save-btn" class="w-full bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition">Save to File</button>
                     </div>
                 </div>
             </div>
@@ -106,15 +100,9 @@
     <canvas id="camera-canvas" class="hidden"></canvas>
 
     <script>
-        // --- State Management & Configuration ---
-        // FINAL UPDATE: Point the app to the live, public Render server URL
+        // JavaScript has been cleaned up to remove the download functionality
         const BACKEND_URL = 'https://card-scanner-project.onrender.com'; 
-        let captureState = 'idle'; 
-        let frontImageDataURL = null;
-        let backImageDataURL = null;
-        let cameraStream = null;
-
-        // --- All other JavaScript is unchanged ---
+        let captureState = 'idle'; let frontImageDataURL = null; let backImageDataURL = null; let cameraStream = null;
         const scanModeToggle = document.getElementById('scan-mode-toggle');
         const scanModeLabel = document.getElementById('scan-mode-label');
         const backSideContainer = document.getElementById('back-side-container');
@@ -147,83 +135,34 @@
         saveBtn.addEventListener('click', handleSaveToExcel);
 
         async function handleScan() {
-            if (!frontImageDataURL) {
-                alert("Please provide an image for the Front Side.");
-                return;
-            }
-            resultsForm.classList.add('opacity-0');
-            loadingSpinner.classList.remove('hidden');
+            if (!frontImageDataURL) { alert("Please provide an image for the Front Side."); return; }
+            resultsForm.classList.add('opacity-0'); loadingSpinner.classList.remove('hidden');
             try {
-                const payload = {
-                    frontImage: frontImageDataURL,
-                    backImage: scanModeToggle.checked ? backImageDataURL : null
-                };
-                const response = await fetch(`${BACKEND_URL}/process-card`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                if (!response.ok) {
-                    const errorResult = await response.json();
-                    throw new Error(errorResult.error || `Server error: ${response.status}`);
-                }
-                const result = await response.json();
-                populateForm(result.data);
-            } catch (error) {
-                console.error("Error during scan:", error);
-                alert("An error occurred during scanning: " + error.message);
-            } finally {
-                loadingSpinner.classList.add('hidden');
-                resultsForm.classList.remove('opacity-0');
-            }
+                const payload = { frontImage: frontImageDataURL, backImage: scanModeToggle.checked ? backImageDataURL : null };
+                const response = await fetch(`${BACKEND_URL}/process-card`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (!response.ok) { const errorResult = await response.json(); throw new Error(errorResult.error || `Server error: ${response.status}`); }
+                const result = await response.json(); populateForm(result.data);
+            } catch (error) { console.error("Error during scan:", error); alert("An error occurred during scanning: " + error.message); } 
+            finally { loadingSpinner.classList.add('hidden'); resultsForm.classList.remove('opacity-0'); }
         }
 
         async function handleSaveToExcel() {
-            const contact = {
-                organization: document.getElementById('organization').value.trim(),
-                name: document.getElementById('name').value.trim(),
-                designation: document.getElementById('designation').value.trim(),
-                contact: document.getElementById('contact').value.trim(),
-                email: document.getElementById('email').value.trim(),
-                website: document.getElementById('website').value.trim(),
-                address: document.getElementById('address').value.trim(),
-                remarks: document.getElementById('remarks').value.trim()
-            };
-            if (!contact.name && !contact.organization) {
-                alert("Cannot save an empty contact.");
-                return;
-            }
+            const contact = { organization: document.getElementById('organization').value.trim(), name: document.getElementById('name').value.trim(), designation: document.getElementById('designation').value.trim(), contact: document.getElementById('contact').value.trim(), email: document.getElementById('email').value.trim(), website: document.getElementById('website').value.trim(), address: document.getElementById('address').value.trim(), remarks: document.getElementById('remarks').value.trim() };
+            if (!contact.name && !contact.organization) { alert("Cannot save an empty contact."); return; }
             try {
-                const response = await fetch(`${BACKEND_URL}/save-contact`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(contact)
-                });
-                if (!response.ok) throw new Error("Failed to save to Excel file.");
-                const result = await response.json();
-                alert(result.message);
-                clearFormAndPreviews();
-            } catch (error) {
-                console.error("Error saving contact:", error);
-                alert("An error occurred while saving to the Excel file.");
-            }
+                const response = await fetch(`${BACKEND_URL}/save-contact`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(contact) });
+                if (!response.ok) throw new Error("Failed to save to Google Sheet.");
+                const result = await response.json(); alert(result.message); clearFormAndPreviews();
+            } catch (error) { console.error("Error saving contact:", error); alert("An error occurred while saving to the Google Sheet."); }
         }
         
         function populateForm(data) {
-            document.getElementById('organization').value = data.organization || '';
-            document.getElementById('name').value = data.name || '';
-            document.getElementById('designation').value = data.designation || '';
-            document.getElementById('contact').value = data.contact || '';
-            document.getElementById('email').value = data.email || '';
-            document.getElementById('website').value = data.website || '';
-            document.getElementById('address').value = data.address || '';
-            document.getElementById('remarks').value = data.remarks || '';
+            document.getElementById('organization').value = data.organization || ''; document.getElementById('name').value = data.name || ''; document.getElementById('designation').value = data.designation || ''; document.getElementById('contact').value = data.contact || ''; document.getElementById('email').value = data.email || ''; document.getElementById('website').value = data.website || ''; document.getElementById('address').value = data.address || ''; document.getElementById('remarks').value = data.remarks || '';
         }
 
         function clearFormAndPreviews() {
             resultsForm.querySelectorAll('input, textarea').forEach(input => input.value = '');
-            frontImageDataURL = null;
-            backImageDataURL = null;
+            frontImageDataURL = null; backImageDataURL = null;
             frontPreview.src = 'https://placehold.co/400x250/e2e8f0/cbd5e0?text=Front+Side';
             backPreview.src = 'https://placehold.co/400x250/e2e8f0/cbd5e0?text=Back+Side';
         }
@@ -234,10 +173,7 @@
             scanModeLabel.textContent = isTwoSided ? 'Two-Sided' : 'One-Sided';
             toggleBg.classList.toggle('bg-blue-600', isTwoSided);
             toggleBg.classList.toggle('bg-gray-200', !isTwoSided);
-            if (!isTwoSided) {
-                backImageDataURL = null;
-                backPreview.src = 'https://placehold.co/400x250/e2e8f0/cbd5e0?text=Back+Side';
-            }
+            if (!isTwoSided) { backImageDataURL = null; backPreview.src = 'https://placehold.co/400x250/e2e8f0/cbd5e0?text=Back+Side'; }
         }
 
         function handleFileSelect(event, side) {
@@ -246,24 +182,15 @@
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     const imageUrl = e.target.result;
-                    if (side === 'front') {
-                        frontImageDataURL = imageUrl;
-                        frontPreview.src = imageUrl;
-                    } else {
-                        backImageDataURL = imageUrl;
-                        backPreview.src = imageUrl;
-                    }
+                    if (side === 'front') { frontImageDataURL = imageUrl; frontPreview.src = imageUrl; } else { backImageDataURL = imageUrl; backPreview.src = imageUrl; }
                 };
                 reader.readAsDataURL(file);
             }
         }
 
         async function startGuidedCapture() {
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                alert("Camera functionality is not supported by your browser."); return;
-            }
-            scanModeToggle.checked = true;
-            handleScanModeChange();
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { alert("Camera functionality is not supported by your browser."); return; }
+            scanModeToggle.checked = true; handleScanModeChange();
             cameraOverlay.classList.remove('hidden');
             await startCameraStream();
             updateCaptureState('capturing_front');
@@ -274,59 +201,26 @@
                 if (cameraStream) cameraStream.getTracks().forEach(track => track.stop());
                 cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
                 cameraFeed.srcObject = cameraStream;
-            } catch (error) {
-                console.error("Error accessing camera:", error);
-                alert("Could not access the camera. Please ensure permissions are granted.");
-                closeCamera();
-            }
+            } catch (error) { console.error("Error accessing camera:", error); alert("Could not access the camera. Please ensure permissions are granted."); closeCamera(); }
         }
         
         function updateCaptureState(newState) {
-            captureState = newState;
-            cameraControls.innerHTML = ''; 
-
+            captureState = newState; cameraControls.innerHTML = ''; 
             switch (captureState) {
                 case 'capturing_front':
-                    cameraPrompt.textContent = 'Capture Front Side';
-                    capturePreviewImg.classList.add('hidden');
-                    cameraFeed.classList.remove('hidden');
-                    createButton('Capture', handleCaptureClick);
-                    break;
+                    cameraPrompt.textContent = 'Capture Front Side'; capturePreviewImg.classList.add('hidden'); cameraFeed.classList.remove('hidden'); createButton('Capture', handleCaptureClick); break;
                 case 'confirming_front':
-                    cameraPrompt.textContent = 'Use this photo for the Front?';
-                    cameraFeed.classList.add('hidden');
-                    capturePreviewImg.classList.remove('hidden');
-                    createButton('Retake', () => updateCaptureState('capturing_front'));
-                    createButton('Confirm', () => {
-                        frontImageDataURL = capturePreviewImg.src;
-                        frontPreview.src = frontImageDataURL;
-                        updateCaptureState('capturing_back');
-                    });
-                    break;
+                    cameraPrompt.textContent = 'Use this photo for the Front?'; cameraFeed.classList.add('hidden'); capturePreviewImg.classList.remove('hidden'); createButton('Retake', () => updateCaptureState('capturing_front')); createButton('Confirm', () => { frontImageDataURL = capturePreviewImg.src; frontPreview.src = frontImageDataURL; updateCaptureState('capturing_back'); }); break;
                 case 'capturing_back':
-                    cameraPrompt.textContent = 'Capture Back Side';
-                    capturePreviewImg.classList.add('hidden');
-                    cameraFeed.classList.remove('hidden');
-                    createButton('Capture', handleCaptureClick);
-                    break;
+                    cameraPrompt.textContent = 'Capture Back Side'; capturePreviewImg.classList.add('hidden'); cameraFeed.classList.remove('hidden'); createButton('Capture', handleCaptureClick); break;
                 case 'confirming_back':
-                    cameraPrompt.textContent = 'Use this photo for the Back?';
-                    cameraFeed.classList.add('hidden');
-                    capturePreviewImg.classList.remove('hidden');
-                    createButton('Retake', () => updateCaptureState('capturing_back'));
-                    createButton('Confirm', () => {
-                        backImageDataURL = capturePreviewImg.src;
-                        backPreview.src = backImageDataURL;
-                        closeCamera();
-                    });
-                    break;
+                    cameraPrompt.textContent = 'Use this photo for the Back?'; cameraFeed.classList.add('hidden'); capturePreviewImg.classList.remove('hidden'); createButton('Retake', () => updateCaptureState('capturing_back')); createButton('Confirm', () => { backImageDataURL = capturePreviewImg.src; backPreview.src = backImageDataURL; closeCamera(); }); break;
             }
         }
 
         function handleCaptureClick() {
             const context = cameraCanvas.getContext('2d');
-            cameraCanvas.width = cameraFeed.videoWidth;
-            cameraCanvas.height = cameraFeed.videoHeight;
+            cameraCanvas.width = cameraFeed.videoWidth; cameraCanvas.height = cameraFeed.videoHeight;
             context.drawImage(cameraFeed, 0, 0, cameraCanvas.width, cameraCanvas.height);
             capturePreviewImg.src = cameraCanvas.toDataURL('image/jpeg');
             if (captureState === 'capturing_front') updateCaptureState('confirming_front');
@@ -342,10 +236,7 @@
         }
 
         function closeCamera() {
-            if (cameraStream) {
-                cameraStream.getTracks().forEach(track => track.stop());
-                cameraStream = null;
-            }
+            if (cameraStream) { cameraStream.getTracks().forEach(track => track.stop()); cameraStream = null; }
             cameraOverlay.classList.add('hidden');
             captureState = 'idle';
         }
