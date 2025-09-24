@@ -24,7 +24,7 @@ SCOPES = [
 ]
 # The name of the Google Sheet you created
 # IMPORTANT: Make sure this name exactly matches the name of your Google Sheet.
-SHEET_NAME = "Card Scanner Contacts" 
+SHEET_NAME = "Business Card Contacts" 
 
 # Authenticate with the credentials file.
 # On Render, we will upload `credentials.json` as a Secret File.
